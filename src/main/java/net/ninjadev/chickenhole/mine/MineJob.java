@@ -1,49 +1,34 @@
-package net.ninjadev.chickenhole;
+package net.ninjadev.chickenhole.mine;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.*;
 
-public class MinePlan {
+public class MineJob {
 
-    private final UUID entityId;
-    private final BlockPos center;
-    private final int radius;
     private final NavigableMap<Integer, List<BlockPos>> blocksToMine;
+    private final boolean enableDrops;
+    private final float speed;
     private Integer currentLayer;
     private int index;
-    private int cooldown;
 
-    public MinePlan(UUID entityId, BlockPos center, int radius, Map<Integer, List<BlockPos>> blocksToMine) {
-        this.entityId = entityId;
-        this.center = center;
-        this.radius = radius;
+
+    public MineJob(Map<Integer, List<BlockPos>> blocksToMine, boolean enableDrops, float speed) {
         this.blocksToMine = new TreeMap<>(Comparator.reverseOrder());
         this.blocksToMine.putAll(blocksToMine);
-        this.currentLayer = this.blocksToMine.isEmpty() ? Integer.MIN_VALUE : this.blocksToMine.firstKey();
+        this.enableDrops = enableDrops;
+        this.speed = speed;
+        this.currentLayer = this.blocksToMine.isEmpty() ? null : this.blocksToMine.firstKey();
         this.index = 0;
-        this.cooldown = 0;
     }
 
-    public UUID getEntityId() {
-        return this.entityId;
+    public boolean isEnableDrops() {
+        return this.enableDrops;
     }
 
-    public BlockPos getCenter() {
-        return this.center;
-    }
-
-    public int getRadius() {
-        return this.radius;
-    }
-
-    public Map<Integer, List<BlockPos>> getBlocksToMine() {
-        return this.blocksToMine;
-    }
-
-    public int getCooldown() {
-        return this.cooldown;
+    public float getSpeed() {
+        return speed;
     }
 
     public boolean isDone() {
@@ -54,6 +39,7 @@ public class MinePlan {
         if (currentLayer == null) {
             return Optional.empty();
         }
+
         List<BlockPos> layer = this.blocksToMine.get(currentLayer);
         if (layer == null || layer.isEmpty()) {
             currentLayer = this.blocksToMine.higherKey(currentLayer);
@@ -66,34 +52,25 @@ public class MinePlan {
         }
 
         BlockPos pos = layer.get(index);
+
         if (world.getBlockState(pos).isAir()) {
-            layer.remove(pos);
-            index++;
+            layer.remove(index);
+            if (layer.isEmpty()) {
+                this.blocksToMine.remove(currentLayer);
+                currentLayer = this.blocksToMine.higherKey(currentLayer);
+                index = 0;
+            }
+            return this.getNext(world);
         }
-        if (layer.isEmpty()) {
-            currentLayer--;
-            index = 0;
-        }
+
         return Optional.of(pos);
     }
 
-    public void tickCooldown() {
-        if (this.cooldown > 0) {
-            this.cooldown--;
-        }
-    }
-
-    public void advance() {
-        if (!this.isDone()) {
-            this.index++;
-        }
-    }
-
-    public void setCooldown(int cooldown) {
-        this.cooldown = cooldown;
-    }
-
     public void removeMinedBlock(BlockPos toMine) {
+        if (currentLayer == null) {
+            return;
+        }
+
         List<BlockPos> layer = this.blocksToMine.get(currentLayer);
         if (layer != null) {
             layer.remove(toMine);

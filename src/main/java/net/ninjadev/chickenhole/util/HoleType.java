@@ -1,4 +1,7 @@
 package net.ninjadev.chickenhole.util;
 
-public class HoleType {
+public enum HoleType {
+    SEMISPHERE,
+    CYLINDER,
+    CUBE
 }

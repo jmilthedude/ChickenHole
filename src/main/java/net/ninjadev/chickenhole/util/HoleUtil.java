@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Utilities {
+public class HoleUtil {
 
     private static final double BLOCK_CENTER_OFFSET = 0.5;
     private static final double SPHERE_CENTER_Y_OFFSET = 1.0;

@@ -7,19 +7,15 @@
   "authors": [],
   "contact": {},
   "license": "MIT",
-  "icon": "assets/chickenhole/icon.png",
   "environment": "*",
   "entrypoints": {
     "client": [
-      "net.ninjadev.chickenhole.client.ChickenholeClient"
+      "net.ninjadev.chickenhole.client.ChickenHoleClient"
     ],
     "main": [
-      "net.ninjadev.chickenhole.Chickenhole"
+      "net.ninjadev.chickenhole.ChickenHole"
     ]
   },
-  "mixins": [
-    "chickenhole.mixins.json"
-  ],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
